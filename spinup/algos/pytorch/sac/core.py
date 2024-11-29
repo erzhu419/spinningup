@@ -57,6 +57,7 @@ class SquashedGaussianMLPActor(nn.Module):
             # and look in appendix C. This is a more numerically-stable equivalent to Eq 21.
             # Try deriving it yourself as a (very difficult) exercise. :)
             logp_pi = pi_distribution.log_prob(pi_action).sum(axis=-1)
+            # 下面这个函数的形状和Eq21的形状是一样的，都是个在0点达到最大值的抛物线，类似于y=-x^2
             logp_pi -= (2*(np.log(2) - pi_action - F.softplus(-2*pi_action))).sum(axis=1)
         else:
             logp_pi = None

@@ -185,6 +185,8 @@ def sac(env_fn, actor_critic=core.MLPActorCritic, ac_kwargs=dict(), seed=0,
         # Bellman backup for Q functions
         with torch.no_grad():
             # Target actions come from *current* policy
+            # 根据王树森在https://www.youtube.com/watch?v=cmWejKRWLA8 的解释，这里的a2是从target中采样，而不是从当前的actor中采样
+            # a2, logp_a2 = ac_targ.pi(o2)
             a2, logp_a2 = ac.pi(o2)
 
             # Target Q-values

@@ -28,7 +28,9 @@ def gaussian_likelihood(x, mu, log_std):
     #   YOUR CODE HERE    #
     #                     #
     #######################
-    return torch.zeros(1)
+    # see 
+    return -1/2 * (torch.sum(torch.pow(x-mu, exponent=2)/torch.pow(torch.exp(log_std), exponent=2) + 2 * log_std, dim=-1)
+                   + x.size()[-1] * np.log(2*np.pi))
 
 
 if __name__ == '__main__':

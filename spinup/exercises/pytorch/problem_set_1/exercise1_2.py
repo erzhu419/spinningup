@@ -16,6 +16,7 @@ so make sure to complete that exercise before beginning this one.
 
 """
 
+
 def mlp(sizes, activation, output_activation=nn.Identity):
     """
     Build a multi-layer perceptron in PyTorch.
@@ -33,12 +34,20 @@ def mlp(sizes, activation, output_activation=nn.Identity):
         (Use an nn.Sequential module.)
 
     """
+    layers = []
+    for i in range(len(sizes) - 1):
+        layers.append(nn.Linear(sizes[i], sizes[i + 1]))
+        layers.append(activation())
+    layers.append(output_activation())
+    return nn.Sequential(*layers)
+
     #######################
     #                     #
     #   YOUR CODE HERE    #
     #                     #
     #######################
     pass
+
 
 class DiagonalGaussianDistribution:
 
@@ -57,6 +66,10 @@ class DiagonalGaussianDistribution:
         #   YOUR CODE HERE    #
         #                     #
         #######################
+        from torch.distributions import Normal
+        dis = Normal(self.mu, self.log_std)
+        return dis.sample()
+
         pass
 
     #================================(Given, ignore)==========================================#
@@ -85,11 +98,16 @@ class MLPGaussianActor(nn.Module):
         #   YOUR CODE HERE    #
         #                     #
         #######################
-        # self.log_std = 
-        # self.mu_net = 
-        pass 
 
-    #================================(Given, ignore)==========================================#
+        distribution_net = mlp([obs_dim] + [hidden_sizes[0]] + [act_dim], activation)
+
+        self.log_std = torch.zeros(act_dim) - 0.5
+        self.mu_net = distribution_net
+
+        pass
+
+        #================================(Given, ignore)==========================================#
+
     def forward(self, obs, act=None):
         mu = self.mu_net(obs)
         pi = DiagonalGaussianDistribution(mu, self.log_std)
@@ -115,20 +133,20 @@ if __name__ == '__main__':
     import psutil
     import time
 
-    logdir = "/tmp/experiments/%i"%int(time.time())
+    logdir = "/tmp/experiments/%i" % int(time.time())
 
     ActorCritic = partial(exercise1_2_auxiliary.ExerciseActorCritic, actor=MLPGaussianActor)
-    
-    ppo(env_fn = lambda : gym.make('InvertedPendulum-v2'),
+
+    ppo(env_fn=lambda: gym.make('InvertedPendulum-v2'),
         actor_critic=ActorCritic,
         ac_kwargs=dict(hidden_sizes=(64,)),
         steps_per_epoch=4000, epochs=20, logger_kwargs=dict(output_dir=logdir))
 
     # Get scores from last five epochs to evaluate success.
-    data = pd.read_table(os.path.join(logdir,'progress.txt'))
+    data = pd.read_table(os.path.join(logdir, 'progress.txt'))
     last_scores = data['AverageEpRet'][-5:]
 
     # Your implementation is probably correct if the agent has a score >500,
     # or if it reaches the top possible score of 1000, in the last five epochs.
-    correct = np.mean(last_scores) > 500 or np.max(last_scores)==1e3
+    correct = np.mean(last_scores) > 500 or np.max(last_scores) == 1e3
     print_result(correct)
